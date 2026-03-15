@@ -1,0 +1,931 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>المساعد العقاري الذكي - تقرير ريادي</title>
+<link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@300;400;500;700;800&display=swap" rel="stylesheet">
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{
+--bg:#0a0a1a;--bg2:#0f1029;--card:rgba(255,255,255,0.05);--card-border:rgba(255,255,255,0.08);
+--primary:#f59e0b;--secondary:#3b82f6;--success:#10b981;--warning:#f59e0b;--danger:#ef4444;
+--text:#e2e8f0;--text-dim:#94a3b8;--text-bright:#f8fafc;
+--glass:rgba(255,255,255,0.03);--blur:20px;
+--radius:16px;--radius-sm:10px;
+}
+html{scroll-behavior:smooth;font-size:16px}
+body{font-family:'Tajawal',sans-serif;background:var(--bg);color:var(--text);line-height:1.8;overflow-x:hidden;min-height:100vh}
+body::before{content:'';position:fixed;inset:0;background:radial-gradient(ellipse at 30% 20%,rgba(59,130,246,0.08) 0%,transparent 60%),radial-gradient(ellipse at 70% 80%,rgba(245,158,11,0.06) 0%,transparent 60%);pointer-events:none;z-index:0}
+
+/* Scrollbar */
+::-webkit-scrollbar{width:6px}
+::-webkit-scrollbar-track{background:var(--bg)}
+::-webkit-scrollbar-thumb{background:var(--primary);border-radius:3px}
+
+/* Sidebar */
+.sidebar{position:fixed;right:0;top:0;width:260px;height:100vh;background:rgba(10,10,26,0.95);backdrop-filter:blur(var(--blur));border-left:1px solid var(--card-border);z-index:100;display:flex;flex-direction:column;padding:24px 0;overflow-y:auto;transition:transform .3s}
+.sidebar-logo{padding:0 24px 24px;text-align:center;border-bottom:1px solid var(--card-border);margin-bottom:16px}
+.sidebar-logo h2{font-size:1.1rem;font-weight:700;color:var(--primary);margin-bottom:4px}
+.sidebar-logo span{font-size:.75rem;color:var(--text-dim)}
+.nav-item{display:flex;align-items:center;gap:12px;padding:12px 24px;cursor:pointer;transition:all .25s;color:var(--text-dim);font-size:.9rem;border-right:3px solid transparent;text-decoration:none}
+.nav-item:hover{background:rgba(245,158,11,0.06);color:var(--text)}
+.nav-item.active{color:var(--primary);background:rgba(245,158,11,0.08);border-right-color:var(--primary);font-weight:700}
+.nav-icon{font-size:1.2rem;width:28px;text-align:center;flex-shrink:0}
+.nav-label{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+
+/* Main */
+.main{margin-right:260px;padding:40px;max-width:1200px}
+section{min-height:60vh;padding:60px 0;opacity:0;transform:translateY(30px);transition:opacity .6s,transform .6s}
+section.visible{opacity:1;transform:translateY(0)}
+.section-header{margin-bottom:40px}
+.section-header h1{font-size:2rem;font-weight:800;color:var(--text-bright);margin-bottom:8px;display:flex;align-items:center;gap:12px}
+.section-header p{color:var(--text-dim);font-size:1.05rem}
+.section-number{display:inline-flex;align-items:center;justify-content:center;width:40px;height:40px;background:linear-gradient(135deg,var(--primary),#d97706);border-radius:10px;font-size:1rem;font-weight:800;color:#0a0a1a}
+
+/* Cards */
+.card{background:var(--card);backdrop-filter:blur(var(--blur));border:1px solid var(--card-border);border-radius:var(--radius);padding:28px;transition:transform .3s,box-shadow .3s}
+.card:hover{transform:translateY(-4px);box-shadow:0 12px 40px rgba(0,0,0,0.3)}
+.grid-2{display:grid;grid-template-columns:repeat(2,1fr);gap:20px}
+.grid-3{display:grid;grid-template-columns:repeat(3,1fr);gap:20px}
+.grid-4{display:grid;grid-template-columns:repeat(4,1fr);gap:20px}
+
+/* Progress Ring */
+.progress-ring-wrap{position:relative;width:180px;height:180px;margin:0 auto}
+.progress-ring{transform:rotate(-90deg)}
+.progress-ring circle{fill:none;stroke-width:10;stroke-linecap:round}
+.progress-ring .bg{stroke:rgba(255,255,255,0.08)}
+.progress-ring .fg{stroke:var(--primary);stroke-dasharray:502;stroke-dashoffset:502;transition:stroke-dashoffset 2s ease-out}
+.ring-text{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center}
+.ring-text .score{font-size:2.8rem;font-weight:800;color:var(--primary)}
+.ring-text .label{font-size:.85rem;color:var(--text-dim)}
+
+/* Highlight Cards */
+.highlight-card{text-align:center;padding:32px 20px}
+.highlight-card .icon{font-size:2.5rem;margin-bottom:16px}
+.highlight-card h3{font-size:1.1rem;font-weight:700;color:var(--text-bright);margin-bottom:8px}
+.highlight-card p{color:var(--text-dim);font-size:.9rem;line-height:1.6}
+
+/* Stats */
+.stat-card{text-align:center;padding:24px}
+.stat-card .stat-value{font-size:2rem;font-weight:800;background:linear-gradient(135deg,var(--primary),var(--secondary));-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text}
+.stat-card .stat-label{color:var(--text-dim);font-size:.85rem;margin-top:4px}
+
+/* Funnel */
+.funnel{max-width:500px;margin:40px auto}
+.funnel-level{text-align:center;padding:20px;margin:0 auto;border-radius:var(--radius-sm);position:relative;transition:transform .3s}
+.funnel-level:hover{transform:scale(1.03)}
+.funnel-level h4{font-weight:700;font-size:1rem;margin-bottom:4px}
+.funnel-level p{font-size:.85rem;opacity:.8}
+.funnel-level.tam{background:linear-gradient(135deg,rgba(59,130,246,0.25),rgba(59,130,246,0.1));border:1px solid rgba(59,130,246,0.3);width:100%}
+.funnel-level.sam{background:linear-gradient(135deg,rgba(245,158,11,0.25),rgba(245,158,11,0.1));border:1px solid rgba(245,158,11,0.3);width:75%;margin-top:-1px}
+.funnel-level.som{background:linear-gradient(135deg,rgba(16,185,129,0.25),rgba(16,185,129,0.1));border:1px solid rgba(16,185,129,0.3);width:50%;margin-top:-1px}
+.funnel-connector{width:2px;height:20px;background:var(--card-border);margin:0 auto}
+
+/* Table */
+.comp-table{width:100%;border-collapse:separate;border-spacing:0;overflow:hidden;border-radius:var(--radius);border:1px solid var(--card-border)}
+.comp-table th,.comp-table td{padding:14px 18px;text-align:center;border-bottom:1px solid var(--card-border)}
+.comp-table th{background:rgba(245,158,11,0.1);color:var(--primary);font-weight:700;font-size:.9rem}
+.comp-table td{font-size:.9rem}
+.comp-table tr:last-child td{border-bottom:none}
+.comp-table tr:hover td{background:rgba(255,255,255,0.02)}
+.comp-table td:first-child{text-align:right;font-weight:600;color:var(--text-bright)}
+.check{color:var(--success);font-weight:700;font-size:1.2rem}
+.cross{color:var(--danger);font-weight:700;font-size:1.2rem}
+
+/* Pricing */
+.pricing-card{text-align:center;padding:32px 24px;position:relative;overflow:hidden}
+.pricing-card.featured{border-color:var(--primary);box-shadow:0 0 30px rgba(245,158,11,0.15)}
+.pricing-card.featured::before{content:'الأكثر طلباً';position:absolute;top:16px;left:-32px;background:var(--primary);color:#0a0a1a;font-size:.7rem;font-weight:700;padding:4px 40px;transform:rotate(45deg)}
+.pricing-card .plan-name{font-size:1.1rem;font-weight:700;color:var(--text-bright);margin-bottom:8px}
+.pricing-card .plan-price{font-size:2.2rem;font-weight:800;color:var(--primary);margin-bottom:4px}
+.pricing-card .plan-price span{font-size:.9rem;font-weight:400;color:var(--text-dim)}
+.pricing-card .plan-features{list-style:none;margin-top:20px;text-align:right}
+.pricing-card .plan-features li{padding:8px 0;border-bottom:1px solid var(--card-border);font-size:.85rem;color:var(--text-dim)}
+.pricing-card .plan-features li:last-child{border:none}
+
+/* Unit Economics */
+.metric-card{text-align:center;padding:24px}
+.metric-card .metric-value{font-size:1.8rem;font-weight:800;color:var(--success)}
+.metric-card .metric-label{color:var(--text-dim);font-size:.85rem;margin-top:4px}
+.metric-card .metric-sub{font-size:.75rem;color:var(--text-dim);margin-top:2px}
+
+/* Timeline */
+.timeline{position:relative;padding:20px 0}
+.timeline::before{content:'';position:absolute;right:24px;top:0;bottom:0;width:3px;background:linear-gradient(180deg,var(--secondary),var(--primary),var(--success))}
+.timeline-item{position:relative;padding:0 60px 40px 0;opacity:0;transform:translateX(20px);transition:all .5s}
+.timeline-item.visible{opacity:1;transform:translateX(0)}
+.timeline-dot{position:absolute;right:14px;top:8px;width:24px;height:24px;border-radius:50%;border:3px solid;display:flex;align-items:center;justify-content:center;font-size:.6rem;font-weight:800;color:#0a0a1a}
+.timeline-item:nth-child(1) .timeline-dot{border-color:var(--secondary);background:var(--secondary)}
+.timeline-item:nth-child(2) .timeline-dot{border-color:var(--primary);background:var(--primary)}
+.timeline-item:nth-child(3) .timeline-dot{border-color:var(--success);background:var(--success)}
+.timeline-content{background:var(--card);border:1px solid var(--card-border);border-radius:var(--radius);padding:24px}
+.timeline-content h3{font-size:1.1rem;font-weight:700;color:var(--text-bright);margin-bottom:4px}
+.timeline-content .phase-period{font-size:.8rem;color:var(--primary);margin-bottom:12px}
+.timeline-stats{display:flex;gap:20px;flex-wrap:wrap}
+.timeline-stat{font-size:.85rem;color:var(--text-dim)}
+.timeline-stat strong{color:var(--text);display:block}
+
+/* Growth Loop */
+.growth-loop{display:flex;align-items:center;justify-content:center;flex-wrap:wrap;gap:8px;padding:30px;background:var(--card);border:1px solid var(--card-border);border-radius:var(--radius);margin-top:30px}
+.loop-step{background:rgba(245,158,11,0.1);border:1px solid rgba(245,158,11,0.2);border-radius:var(--radius-sm);padding:12px 20px;font-weight:600;font-size:.9rem;color:var(--primary)}
+.loop-arrow{font-size:1.2rem;color:var(--text-dim)}
+
+/* Risk */
+.risk-card{padding:24px;border-right:4px solid}
+.risk-card.high{border-color:var(--danger)}
+.risk-card.medium{border-color:var(--warning)}
+.risk-card.low{border-color:var(--success)}
+.risk-card h4{font-size:1rem;font-weight:700;color:var(--text-bright);margin-bottom:8px}
+.risk-badge{display:inline-block;padding:3px 10px;border-radius:20px;font-size:.7rem;font-weight:700;margin-left:8px}
+.risk-badge.prob-high{background:rgba(239,68,68,0.15);color:var(--danger)}
+.risk-badge.prob-med{background:rgba(245,158,11,0.15);color:var(--warning)}
+.risk-badge.prob-low{background:rgba(16,185,129,0.15);color:var(--success)}
+.risk-badge.impact-high{background:rgba(239,68,68,0.15);color:var(--danger)}
+.risk-badge.impact-med{background:rgba(245,158,11,0.15);color:var(--warning)}
+
+/* Recommendations */
+.rec-group{margin-bottom:32px}
+.rec-group h3{font-size:1.1rem;font-weight:700;margin-bottom:16px;display:flex;align-items:center;gap:8px}
+.rec-list{display:flex;flex-direction:column;gap:10px}
+.rec-item{background:var(--card);border:1px solid var(--card-border);border-radius:var(--radius-sm);padding:16px 20px;font-size:.9rem;display:flex;align-items:center;gap:12px;transition:transform .2s}
+.rec-item:hover{transform:translateX(-4px)}
+.rec-num{width:28px;height:28px;border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:.75rem;font-weight:700;flex-shrink:0}
+.rec-group.immediate .rec-num{background:rgba(239,68,68,0.15);color:var(--danger)}
+.rec-group.soon .rec-num{background:rgba(245,158,11,0.15);color:var(--warning)}
+.rec-group.future .rec-num{background:rgba(59,130,246,0.15);color:var(--secondary)}
+
+/* KPI */
+.kpi-card{padding:24px}
+.kpi-card h4{font-size:.85rem;color:var(--text-dim);margin-bottom:12px}
+.kpi-card .kpi-value{font-size:1.6rem;font-weight:800;color:var(--text-bright);margin-bottom:12px}
+.progress-bar{height:8px;background:rgba(255,255,255,0.08);border-radius:4px;overflow:hidden}
+.progress-bar .fill{height:100%;border-radius:4px;transition:width 1.5s ease-out;width:0}
+.fill-primary{background:linear-gradient(90deg,var(--primary),#d97706)}
+.fill-success{background:linear-gradient(90deg,var(--success),#059669)}
+.fill-secondary{background:linear-gradient(90deg,var(--secondary),#2563eb)}
+
+/* Ideas */
+.idea-card{padding:28px;position:relative;overflow:hidden}
+.idea-card::after{content:'';position:absolute;top:0;left:0;right:0;height:3px;background:linear-gradient(90deg,var(--primary),var(--secondary))}
+.idea-card .idea-num{font-size:3rem;font-weight:800;color:rgba(245,158,11,0.1);position:absolute;top:10px;left:20px}
+.idea-card h4{font-size:1.05rem;font-weight:700;color:var(--text-bright);margin-bottom:8px;display:flex;align-items:center;gap:8px}
+.idea-card p{font-size:.85rem;color:var(--text-dim);line-height:1.7}
+
+/* Verdict */
+.verdict-box{background:linear-gradient(135deg,rgba(245,158,11,0.1),rgba(59,130,246,0.05));border:2px solid rgba(245,158,11,0.3);border-radius:var(--radius);padding:40px;text-align:center;margin-bottom:32px}
+.verdict-box h2{font-size:1.8rem;font-weight:800;color:var(--primary);margin-bottom:8px}
+.verdict-box p{font-size:1.05rem;color:var(--text-dim)}
+.verdict-list{list-style:none}
+.verdict-list li{padding:10px 0;border-bottom:1px solid var(--card-border);display:flex;align-items:center;gap:10px;font-size:.95rem}
+.verdict-list li:last-child{border:none}
+.verdict-list .icon{font-size:1.1rem;flex-shrink:0}
+
+/* Vision list */
+.vision-list{list-style:none;display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-top:20px}
+.vision-item{background:var(--card);border:1px solid var(--card-border);border-radius:var(--radius-sm);padding:16px;display:flex;align-items:center;gap:12px;transition:transform .2s}
+.vision-item:hover{transform:translateX(-4px)}
+.vision-item .v-icon{font-size:1.5rem}
+.vision-item .v-text h4{font-size:.95rem;font-weight:700;color:var(--text-bright)}
+.vision-item .v-text p{font-size:.8rem;color:var(--text-dim)}
+
+/* Competitor mini cards */
+.comp-card{padding:20px}
+.comp-card h4{font-size:1rem;font-weight:700;color:var(--text-bright);margin-bottom:6px}
+.comp-card .comp-type{font-size:.8rem;color:var(--primary);margin-bottom:8px}
+.comp-card p{font-size:.85rem;color:var(--text-dim)}
+
+/* Mobile nav */
+.mobile-nav{display:none;position:fixed;bottom:0;left:0;right:0;background:rgba(10,10,26,0.98);backdrop-filter:blur(var(--blur));border-top:1px solid var(--card-border);z-index:100;padding:8px;overflow-x:auto;white-space:nowrap;-webkit-overflow-scrolling:touch}
+.mobile-nav a{display:inline-flex;flex-direction:column;align-items:center;padding:8px 14px;font-size:.65rem;color:var(--text-dim);text-decoration:none;border-radius:8px;min-width:60px}
+.mobile-nav a.active{color:var(--primary);background:rgba(245,158,11,0.1)}
+.mobile-nav a .m-icon{font-size:1.2rem;margin-bottom:2px}
+
+/* Responsive */
+@media(max-width:1024px){
+.grid-4{grid-template-columns:repeat(2,1fr)}
+}
+@media(max-width:768px){
+.sidebar{transform:translateX(100%)}
+.main{margin-right:0;padding:20px 16px 100px}
+.mobile-nav{display:flex}
+.grid-2,.grid-3,.grid-4{grid-template-columns:1fr}
+.section-header h1{font-size:1.5rem}
+.vision-list{grid-template-columns:1fr}
+.timeline::before{right:16px}
+.timeline-item{padding:0 46px 30px 0}
+.timeline-dot{right:6px}
+.comp-table{font-size:.8rem}
+.comp-table th,.comp-table td{padding:10px 8px}
+}
+
+/* Print */
+@media print{
+.sidebar,.mobile-nav{display:none!important}
+.main{margin:0;padding:20px}
+body{background:#fff;color:#1a1a2e}
+body::before{display:none}
+section{opacity:1!important;transform:none!important;page-break-inside:avoid}
+.card,.pricing-card,.timeline-content,.idea-card,.risk-card,.rec-item,.comp-card,.verdict-box{background:#f9f9fc;border-color:#ddd;box-shadow:none;-webkit-print-color-adjust:exact;print-color-adjust:exact}
+.stat-card .stat-value,.ring-text .score,.pricing-card .plan-price,.kpi-card .kpi-value{-webkit-text-fill-color:var(--primary);color:var(--primary)}
+}
+
+/* Stagger */
+.stagger>*{opacity:0;transform:translateY(20px);transition:opacity .4s,transform .4s}
+.stagger.visible>*{opacity:1;transform:translateY(0)}
+.stagger.visible>*:nth-child(1){transition-delay:.05s}
+.stagger.visible>*:nth-child(2){transition-delay:.1s}
+.stagger.visible>*:nth-child(3){transition-delay:.15s}
+.stagger.visible>*:nth-child(4){transition-delay:.2s}
+.stagger.visible>*:nth-child(5){transition-delay:.25s}
+.stagger.visible>*:nth-child(6){transition-delay:.3s}
+.stagger.visible>*:nth-child(7){transition-delay:.35s}
+.stagger.visible>*:nth-child(8){transition-delay:.4s}
+.stagger.visible>*:nth-child(9){transition-delay:.45s}
+.stagger.visible>*:nth-child(10){transition-delay:.5s}
+
+.mt-20{margin-top:20px}
+.mt-30{margin-top:30px}
+.mt-40{margin-top:40px}
+.mb-20{margin-bottom:20px}
+.text-center{text-align:center}
+.gap-12{gap:12px}
+</style>
+</head>
+<body>
+
+<!-- Sidebar -->
+<nav class="sidebar" id="sidebar">
+  <div class="sidebar-logo">
+    <h2>🏠 المساعد العقاري الذكي</h2>
+    <span>تقرير تحليلي ريادي</span>
+  </div>
+  <a href="#summary" class="nav-item active" data-section="summary"><span class="nav-icon">📋</span><span class="nav-label">الملخص التنفيذي</span></a>
+  <a href="#market" class="nav-item" data-section="market"><span class="nav-icon">📊</span><span class="nav-label">تحليل السوق</span></a>
+  <a href="#competitors" class="nav-item" data-section="competitors"><span class="nav-icon">⚔️</span><span class="nav-label">المنافسون</span></a>
+  <a href="#business" class="nav-item" data-section="business"><span class="nav-icon">💰</span><span class="nav-label">نموذج العمل</span></a>
+  <a href="#growth" class="nav-item" data-section="growth"><span class="nav-icon">🚀</span><span class="nav-label">خطة النمو</span></a>
+  <a href="#risks" class="nav-item" data-section="risks"><span class="nav-icon">⚠️</span><span class="nav-label">المخاطر</span></a>
+  <a href="#recommendations" class="nav-item" data-section="recommendations"><span class="nav-icon">💡</span><span class="nav-label">التوصيات</span></a>
+  <a href="#kpis" class="nav-item" data-section="kpis"><span class="nav-icon">📈</span><span class="nav-label">مؤشرات النجاح</span></a>
+  <a href="#ideas" class="nav-item" data-section="ideas"><span class="nav-icon">✨</span><span class="nav-label">أفكار إبداعية</span></a>
+  <a href="#verdict" class="nav-item" data-section="verdict"><span class="nav-icon">🏆</span><span class="nav-label">الحكم النهائي</span></a>
+</nav>
+
+<!-- Mobile Nav -->
+<nav class="mobile-nav" id="mobileNav">
+  <a href="#summary" class="active" data-section="summary"><span class="m-icon">📋</span>الملخص</a>
+  <a href="#market" data-section="market"><span class="m-icon">📊</span>السوق</a>
+  <a href="#competitors" data-section="competitors"><span class="m-icon">⚔️</span>المنافسون</a>
+  <a href="#business" data-section="business"><span class="m-icon">💰</span>نموذج العمل</a>
+  <a href="#growth" data-section="growth"><span class="m-icon">🚀</span>النمو</a>
+  <a href="#risks" data-section="risks"><span class="m-icon">⚠️</span>المخاطر</a>
+  <a href="#recommendations" data-section="recommendations"><span class="m-icon">💡</span>التوصيات</a>
+  <a href="#kpis" data-section="kpis"><span class="m-icon">📈</span>المؤشرات</a>
+  <a href="#ideas" data-section="ideas"><span class="m-icon">✨</span>أفكار</a>
+  <a href="#verdict" data-section="verdict"><span class="m-icon">🏆</span>الحكم</a>
+</nav>
+
+<main class="main">
+
+<!-- ============ 1. الملخص التنفيذي ============ -->
+<section id="summary">
+  <div class="section-header">
+    <h1><span class="section-number">1</span> الملخص التنفيذي</h1>
+    <p>نظرة شاملة على المشروع وتقييمه العام</p>
+  </div>
+
+  <div style="display:flex;align-items:center;gap:40px;flex-wrap:wrap;justify-content:center;margin-bottom:40px">
+    <div class="progress-ring-wrap">
+      <svg class="progress-ring" viewBox="0 0 180 180" width="180" height="180">
+        <circle class="bg" cx="90" cy="90" r="80"/>
+        <circle class="fg" id="scoreRing" cx="90" cy="90" r="80"/>
+      </svg>
+      <div class="ring-text">
+        <span class="score" id="scoreNum">0</span>
+        <span class="label">من 10</span>
+      </div>
+    </div>
+    <div style="max-width:400px">
+      <h2 style="font-size:1.3rem;font-weight:700;color:var(--text-bright);margin-bottom:12px">تقييم ممتاز</h2>
+      <p style="color:var(--text-dim);font-size:.95rem;line-height:1.8">المساعد العقاري الذكي يجمع بين قناة واتساب الأكثر استخداماً في السعودية والذكاء الاصطناعي المتخصص عقارياً، مع نموذج SaaS متعدد المستأجرين يحقق هوامش ربح عالية.</p>
+    </div>
+  </div>
+
+  <div class="grid-3 stagger">
+    <div class="card highlight-card">
+      <div class="icon">💬</div>
+      <h3>واتساب كقناة أساسية</h3>
+      <p>93% من السعوديين يستخدمون واتساب يومياً. المنصة تحول واتساب لقناة مبيعات عقارية متكاملة.</p>
+    </div>
+    <div class="card highlight-card">
+      <div class="icon">🤖</div>
+      <h3>ذكاء اصطناعي متخصص عقارياً</h3>
+      <p>6 وكلاء AI متخصصين بالعقارات: مطابقة، تأهيل، جدولة، متابعة، تحليل، وإدارة مخزون.</p>
+    </div>
+    <div class="card highlight-card">
+      <div class="icon">👥</div>
+      <h3>إدارة فريق مبيعات مع SLA</h3>
+      <p>نظام توزيع ذكي للعملاء على الفريق مع اتفاقيات مستوى خدمة ومتابعة أداء تلقائية.</p>
+    </div>
+  </div>
+
+  <div class="grid-3 stagger mt-30">
+    <div class="card stat-card">
+      <div class="stat-value"><span data-count="891">0</span>M$</div>
+      <div class="stat-label">حجم سوق PropTech السعودي</div>
+    </div>
+    <div class="card stat-card">
+      <div class="stat-value">+<span data-count="120">0</span>K</div>
+      <div class="stat-label">منشأة عقارية مرخصة</div>
+    </div>
+    <div class="card stat-card">
+      <div class="stat-value"><span data-count="16">0</span>-19%</div>
+      <div class="stat-label">معدل النمو السنوي المركب</div>
+    </div>
+  </div>
+</section>
+
+<!-- ============ 2. تحليل السوق ============ -->
+<section id="market">
+  <div class="section-header">
+    <h1><span class="section-number">2</span> تحليل السوق</h1>
+    <p>حجم السوق والفرص المتاحة في القطاع العقاري السعودي</p>
+  </div>
+
+  <div class="grid-4 stagger">
+    <div class="card stat-card">
+      <div class="stat-value">~280B</div>
+      <div class="stat-label">ريال - السوق العقاري السعودي</div>
+    </div>
+    <div class="card stat-card">
+      <div class="stat-value">~891M$</div>
+      <div class="stat-label">سوق PropTech</div>
+    </div>
+    <div class="card stat-card">
+      <div class="stat-value">16-19%</div>
+      <div class="stat-label">النمو السنوي CAGR</div>
+    </div>
+    <div class="card stat-card">
+      <div class="stat-value">2.5B$</div>
+      <div class="stat-label">المتوقع بحلول 2030</div>
+    </div>
+  </div>
+
+  <h3 style="font-size:1.2rem;font-weight:700;color:var(--text-bright);margin-top:40px;margin-bottom:8px;text-align:center">تحليل TAM / SAM / SOM</h3>
+  <p style="text-align:center;color:var(--text-dim);font-size:.9rem;margin-bottom:20px">حجم السوق المستهدف على ثلاث مستويات</p>
+
+  <div class="funnel">
+    <div class="funnel-level tam">
+      <h4>TAM - السوق الإجمالي</h4>
+      <p>~1.2 مليار ريال/سنة (200,000 منشأة)</p>
+    </div>
+    <div class="funnel-connector"></div>
+    <div class="funnel-level sam">
+      <h4>SAM - السوق المتاح</h4>
+      <p>~504 مليون ريال/سنة (60,000 منشأة)</p>
+    </div>
+    <div class="funnel-connector"></div>
+    <div class="funnel-level som">
+      <h4>SOM - السوق المستهدف</h4>
+      <p>5-10 مليون ريال/سنة (600-1,200 عميل)</p>
+    </div>
+  </div>
+
+  <h3 style="font-size:1.2rem;font-weight:700;color:var(--text-bright);margin-top:40px;margin-bottom:8px">فرص رؤية 2030</h3>
+  <ul class="vision-list stagger">
+    <li class="vision-item">
+      <span class="v-icon">🏠</span>
+      <div class="v-text"><h4>70% تملك منازل</h4><p>هدف رؤية 2030 لرفع نسبة التملك</p></div>
+    </li>
+    <li class="vision-item">
+      <span class="v-icon">🏗️</span>
+      <div class="v-text"><h4>660,000+ وحدة سكنية</h4><p>مطلوبة لتحقيق أهداف الإسكان</p></div>
+    </li>
+    <li class="vision-item">
+      <span class="v-icon">🌆</span>
+      <div class="v-text"><h4>13 مشروع عملاق</h4><p>نيوم، القدية، البحر الأحمر وغيرها</p></div>
+    </li>
+    <li class="vision-item">
+      <span class="v-icon">📈</span>
+      <div class="v-text"><h4>5,200+ مشروع نشط</h4><p>مشاريع تطوير عقاري قائمة حالياً</p></div>
+    </li>
+  </ul>
+</section>
+
+<!-- ============ 3. المنافسون ============ -->
+<section id="competitors">
+  <div class="section-header">
+    <h1><span class="section-number">3</span> المنافسون</h1>
+    <p>تحليل المشهد التنافسي والميزة النسبية</p>
+  </div>
+
+  <div style="overflow-x:auto;margin-bottom:40px">
+    <table class="comp-table">
+      <thead>
+        <tr>
+          <th>الميزة</th>
+          <th>المساعد العقاري</th>
+          <th>CRM تقليدي</th>
+          <th>واتساب API عام</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr><td>واتساب أساسي</td><td class="check">✅</td><td class="cross">❌</td><td class="check">✅</td></tr>
+        <tr><td>AI عقاري عربي</td><td class="check">✅</td><td class="cross">❌</td><td class="cross">❌</td></tr>
+        <tr><td>إدارة فريق + SLA</td><td class="check">✅</td><td class="check">✅</td><td class="cross">❌</td></tr>
+        <tr><td>Multi-tenant</td><td class="check">✅</td><td>بعضها</td><td class="cross">❌</td></tr>
+        <tr><td>تسعير محلي</td><td class="check">✅</td><td class="cross">❌</td><td>متفاوت</td></tr>
+        <tr><td>6 وكلاء AI</td><td class="check">✅</td><td class="cross">❌</td><td class="cross">❌</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <h3 style="font-size:1.1rem;font-weight:700;color:var(--text-bright);margin-bottom:16px">المنافسون الرئيسيون</h3>
+  <div class="grid-3 stagger">
+    <div class="card comp-card">
+      <h4>Kords CRM</h4>
+      <div class="comp-type">CRM عقاري متخصص</div>
+      <p>متخصص في القطاع العقاري لكن لا يركز على واتساب كقناة أساسية. يفتقر لوكلاء AI.</p>
+    </div>
+    <div class="card comp-card">
+      <h4>تعاريف</h4>
+      <div class="comp-type">AI + عقارات</div>
+      <p>منافس مباشر قوي يجمع بين الذكاء الاصطناعي والعقارات. يحتاج مراقبة مستمرة.</p>
+    </div>
+    <div class="card comp-card">
+      <h4>WATI</h4>
+      <div class="comp-type">واتساب API</div>
+      <p>منصة واتساب API قوية لكن غير متخصصة عقارياً. تفتقر للمعرفة العقارية.</p>
+    </div>
+    <div class="card comp-card">
+      <h4>Rasayel</h4>
+      <div class="comp-type">واتساب CRM</div>
+      <p>واتساب CRM موجه للأعمال بشكل عام (B2B). لا تخصص عقاري.</p>
+    </div>
+    <div class="card comp-card">
+      <h4>Zoho / HubSpot</h4>
+      <div class="comp-type">CRM شامل</div>
+      <p>أنظمة CRM شاملة لكن مكلفة وغير متخصصة. تحتاج تخصيص كبير.</p>
+    </div>
+  </div>
+</section>
+
+<!-- ============ 4. نموذج العمل ============ -->
+<section id="business">
+  <div class="section-header">
+    <h1><span class="section-number">4</span> نموذج العمل</h1>
+    <p>خطط التسعير واقتصاديات الوحدة</p>
+  </div>
+
+  <div class="grid-4 stagger">
+    <div class="card pricing-card">
+      <div class="plan-name">تجربة مجانية</div>
+      <div class="plan-price">0 <span>ريال</span></div>
+      <p style="font-size:.8rem;color:var(--text-dim)">7 أيام</p>
+      <ul class="plan-features">
+        <li>50 عقار</li>
+        <li>500 محادثة</li>
+        <li>وكيل AI واحد</li>
+        <li>مستخدم واحد</li>
+      </ul>
+    </div>
+    <div class="card pricing-card">
+      <div class="plan-name">أساسي</div>
+      <div class="plan-price">299 <span>ريال/شهر</span></div>
+      <ul class="plan-features">
+        <li>200 عقار</li>
+        <li>2,000 محادثة</li>
+        <li>3 وكلاء AI</li>
+        <li>3 مستخدمين</li>
+      </ul>
+    </div>
+    <div class="card pricing-card featured">
+      <div class="plan-name">احترافي</div>
+      <div class="plan-price">799 <span>ريال/شهر</span></div>
+      <ul class="plan-features">
+        <li>500 عقار</li>
+        <li>5,000 محادثة</li>
+        <li>6 وكلاء AI</li>
+        <li>10 مستخدمين</li>
+        <li>تقارير متقدمة</li>
+      </ul>
+    </div>
+    <div class="card pricing-card">
+      <div class="plan-name">مؤسسي</div>
+      <div class="plan-price">1,999+ <span>ريال/شهر</span></div>
+      <ul class="plan-features">
+        <li>غير محدود</li>
+        <li>غير محدود</li>
+        <li>6 وكلاء AI</li>
+        <li>غير محدود</li>
+        <li>API كامل</li>
+        <li>دعم مخصص</li>
+      </ul>
+    </div>
+  </div>
+
+  <h3 style="font-size:1.2rem;font-weight:700;color:var(--text-bright);margin-top:40px;margin-bottom:16px;text-align:center">اقتصاديات الوحدة</h3>
+  <div class="grid-4 stagger">
+    <div class="card metric-card">
+      <div class="metric-value">90%+</div>
+      <div class="metric-label">هامش الربح</div>
+      <div class="metric-sub">Gross Margin</div>
+    </div>
+    <div class="card metric-card">
+      <div class="metric-value" style="color:var(--secondary)">500-1,500</div>
+      <div class="metric-label">تكلفة اكتساب العميل (ريال)</div>
+      <div class="metric-sub">CAC</div>
+    </div>
+    <div class="card metric-card">
+      <div class="metric-value">5,400-14,400</div>
+      <div class="metric-label">القيمة الدائمة للعميل (ريال)</div>
+      <div class="metric-sub">LTV</div>
+    </div>
+    <div class="card metric-card">
+      <div class="metric-value" style="color:var(--primary)">3.6x-9.6x</div>
+      <div class="metric-label">نسبة LTV/CAC</div>
+      <div class="metric-sub">الهدف: أعلى من 3x</div>
+    </div>
+  </div>
+</section>
+
+<!-- ============ 5. خطة النمو ============ -->
+<section id="growth">
+  <div class="section-header">
+    <h1><span class="section-number">5</span> خطة النمو</h1>
+    <p>خطة التوسع على مدار 12 شهراً</p>
+  </div>
+
+  <div class="timeline">
+    <div class="timeline-item">
+      <div class="timeline-dot">1</div>
+      <div class="timeline-content">
+        <h3>🚀 المرحلة الأولى: الإطلاق</h3>
+        <div class="phase-period">الشهر 1-3</div>
+        <div class="timeline-stats">
+          <div class="timeline-stat"><strong>الرياض</strong>المنطقة المستهدفة</div>
+          <div class="timeline-stat"><strong>10-15 عميل</strong>العملاء المستهدفون</div>
+          <div class="timeline-stat"><strong>5-10K ريال</strong>MRR المتوقع</div>
+        </div>
+      </div>
+    </div>
+    <div class="timeline-item">
+      <div class="timeline-dot">2</div>
+      <div class="timeline-content">
+        <h3>📈 المرحلة الثانية: النمو</h3>
+        <div class="phase-period">الشهر 4-6</div>
+        <div class="timeline-stats">
+          <div class="timeline-stat"><strong>جدة + الشرقية</strong>التوسع الجغرافي</div>
+          <div class="timeline-stat"><strong>30-50 عميل</strong>العملاء المتراكمون</div>
+          <div class="timeline-stat"><strong>20-40K ريال</strong>MRR المتوقع</div>
+        </div>
+      </div>
+    </div>
+    <div class="timeline-item">
+      <div class="timeline-dot">3</div>
+      <div class="timeline-content">
+        <h3>🌍 المرحلة الثالثة: التوسع</h3>
+        <div class="phase-period">الشهر 7-12</div>
+        <div class="timeline-stats">
+          <div class="timeline-stat"><strong>كل المملكة + الخليج</strong>التغطية الكاملة</div>
+          <div class="timeline-stat"><strong>75-100 عميل</strong>العملاء المتراكمون</div>
+          <div class="timeline-stat"><strong>50-80K ريال</strong>MRR المتوقع</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="growth-loop">
+    <div class="loop-step">👤 عميل جديد</div>
+    <div class="loop-arrow">←</div>
+    <div class="loop-step">📋 كتالوج عقارات</div>
+    <div class="loop-arrow">←</div>
+    <div class="loop-step">⚡ "Powered by"</div>
+    <div class="loop-arrow">←</div>
+    <div class="loop-step">🏠 عقاريون جدد</div>
+    <div class="loop-arrow">←</div>
+    <div class="loop-step">📝 تسجيل</div>
+    <div class="loop-arrow">←</div>
+    <div class="loop-step">🔄 تكرار</div>
+  </div>
+</section>
+
+<!-- ============ 6. المخاطر ============ -->
+<section id="risks">
+  <div class="section-header">
+    <h1><span class="section-number">6</span> المخاطر</h1>
+    <p>تحليل المخاطر المحتملة وخطط التخفيف</p>
+  </div>
+
+  <div class="grid-2 stagger">
+    <div class="card risk-card high">
+      <h4>تغيير سياسات WhatsApp <span class="risk-badge prob-med">احتمال متوسط</span> <span class="risk-badge impact-high">تأثير عالي</span></h4>
+      <p style="font-size:.85rem;color:var(--text-dim);margin-top:8px">ميتا قد تغير سياسات API أو ترفع الأسعار. خطة التخفيف: بناء قنوات بديلة (SMS, Telegram) والتكيف السريع مع التغييرات.</p>
+    </div>
+    <div class="card risk-card medium">
+      <h4>منافس كبير يدخل السوق <span class="risk-badge prob-med">احتمال متوسط</span> <span class="risk-badge impact-med">تأثير متوسط</span></h4>
+      <p style="font-size:.85rem;color:var(--text-dim);margin-top:8px">دخول شركة كبيرة مثل Salesforce بمنتج مشابه. خطة التخفيف: التركيز على التخصص المحلي والسرعة في التطوير.</p>
+    </div>
+    <div class="card risk-card medium">
+      <h4>بطء التبني <span class="risk-badge prob-high">احتمال عالي</span> <span class="risk-badge impact-med">تأثير متوسط</span></h4>
+      <p style="font-size:.85rem;color:var(--text-dim);margin-top:8px">العقاريون التقليديون قد يقاومون التحول الرقمي. خطة التخفيف: تقديم تجربة مجانية وتدريب مكثف وإثبات ROI سريع.</p>
+    </div>
+    <div class="card risk-card low" style="border-color:var(--success)">
+      <h4>تغيير تنظيمات <span class="risk-badge prob-low">احتمال منخفض</span> <span class="risk-badge impact-med">تأثير متوسط</span></h4>
+      <p style="font-size:.85rem;color:var(--text-dim);margin-top:8px">تغيير في تنظيمات الهيئة العامة للعقار. خطة التخفيف: متابعة التنظيمات والتكيف المبكر والتواصل مع الجهات التنظيمية.</p>
+    </div>
+  </div>
+
+  <div class="card mt-30" style="padding:24px">
+    <h4 style="font-size:1rem;font-weight:700;color:var(--text-bright);margin-bottom:16px">📅 جدول تغييرات WhatsApp API المتوقعة (2025-2026)</h4>
+    <div style="display:flex;gap:16px;flex-wrap:wrap">
+      <div style="flex:1;min-width:200px;background:rgba(59,130,246,0.08);border-radius:var(--radius-sm);padding:16px">
+        <div style="font-size:.8rem;color:var(--secondary);font-weight:700;margin-bottom:4px">Q1 2025</div>
+        <p style="font-size:.85rem;color:var(--text-dim)">تغييرات تسعير المحادثات - تأثير محدود</p>
+      </div>
+      <div style="flex:1;min-width:200px;background:rgba(245,158,11,0.08);border-radius:var(--radius-sm);padding:16px">
+        <div style="font-size:.8rem;color:var(--primary);font-weight:700;margin-bottom:4px">Q3 2025</div>
+        <p style="font-size:.85rem;color:var(--text-dim)">تحديثات سياسة الأعمال - مراقبة مطلوبة</p>
+      </div>
+      <div style="flex:1;min-width:200px;background:rgba(239,68,68,0.08);border-radius:var(--radius-sm);padding:16px">
+        <div style="font-size:.8rem;color:var(--danger);font-weight:700;margin-bottom:4px">2026</div>
+        <p style="font-size:.85rem;color:var(--text-dim)">إعادة هيكلة محتملة للـ API - استعداد مبكر ضروري</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ============ 7. التوصيات ============ -->
+<section id="recommendations">
+  <div class="section-header">
+    <h1><span class="section-number">7</span> التوصيات</h1>
+    <p>خطوات عملية مرتبة حسب الأولوية</p>
+  </div>
+
+  <div class="rec-group immediate">
+    <h3>🔴 فورية - الشهر القادم</h3>
+    <div class="rec-list stagger">
+      <div class="rec-item"><span class="rec-num">1</span>إطلاق نسخة MVP مع 3-5 عملاء تجريبيين في الرياض</div>
+      <div class="rec-item"><span class="rec-num">2</span>بناء صفحة هبوط احترافية مع نموذج تسجيل مبكر</div>
+      <div class="rec-item"><span class="rec-num">3</span>تفعيل حساب WhatsApp Business API رسمي</div>
+      <div class="rec-item"><span class="rec-num">4</span>إعداد بنية تحتية سحابية قابلة للتوسع</div>
+      <div class="rec-item"><span class="rec-num">5</span>تحديد استراتيجية تسعير نهائية بناءً على ملاحظات العملاء</div>
+    </div>
+  </div>
+
+  <div class="rec-group soon">
+    <h3>🟡 قريبة - خلال 3 أشهر</h3>
+    <div class="rec-list stagger">
+      <div class="rec-item"><span class="rec-num">1</span>بناء فريق دعم فني ومبيعات (2-3 أشخاص)</div>
+      <div class="rec-item"><span class="rec-num">2</span>إطلاق حملة تسويق رقمي مستهدفة للعقاريين</div>
+      <div class="rec-item"><span class="rec-num">3</span>التكامل مع منصات العقارات المحلية (عقار، حراج)</div>
+      <div class="rec-item"><span class="rec-num">4</span>تطوير لوحة تحكم تحليلية متقدمة للعملاء</div>
+    </div>
+  </div>
+
+  <div class="rec-group future">
+    <h3>🔵 مستقبلية - 6 إلى 12 شهر</h3>
+    <div class="rec-list stagger">
+      <div class="rec-item"><span class="rec-num">1</span>التوسع إلى الإمارات والبحرين كأسواق خليجية</div>
+      <div class="rec-item"><span class="rec-num">2</span>إطلاق برنامج شركاء ووكلاء معتمدين</div>
+      <div class="rec-item"><span class="rec-num">3</span>تطوير تطبيق جوال مخصص للمسوقين العقاريين</div>
+      <div class="rec-item"><span class="rec-num">4</span>البحث عن جولة استثمارية (Pre-Seed / Seed)</div>
+    </div>
+  </div>
+</section>
+
+<!-- ============ 8. مؤشرات النجاح ============ -->
+<section id="kpis">
+  <div class="section-header">
+    <h1><span class="section-number">8</span> مؤشرات النجاح</h1>
+    <p>الأهداف المستهدفة خلال 12 شهراً</p>
+  </div>
+
+  <div class="grid-3 stagger">
+    <div class="card kpi-card">
+      <h4>📝 التسجيلات</h4>
+      <div class="kpi-value"><span data-count="500">0</span>+</div>
+      <div class="progress-bar"><div class="fill fill-primary" data-width="70"></div></div>
+    </div>
+    <div class="card kpi-card">
+      <h4>🔄 معدل التحويل</h4>
+      <div class="kpi-value">15-20%</div>
+      <div class="progress-bar"><div class="fill fill-success" data-width="60"></div></div>
+    </div>
+    <div class="card kpi-card">
+      <h4>💳 عملاء مدفوعين</h4>
+      <div class="kpi-value">75-<span data-count="100">0</span></div>
+      <div class="progress-bar"><div class="fill fill-secondary" data-width="55"></div></div>
+    </div>
+    <div class="card kpi-card">
+      <h4>💰 MRR</h4>
+      <div class="kpi-value">50-<span data-count="80">0</span>K ريال</div>
+      <div class="progress-bar"><div class="fill fill-primary" data-width="65"></div></div>
+    </div>
+    <div class="card kpi-card">
+      <h4>🔒 معدل الاحتفاظ</h4>
+      <div class="kpi-value">90%+</div>
+      <div class="progress-bar"><div class="fill fill-success" data-width="90"></div></div>
+    </div>
+    <div class="card kpi-card">
+      <h4>⭐ NPS</h4>
+      <div class="kpi-value"><span data-count="40">0</span>+</div>
+      <div class="progress-bar"><div class="fill fill-secondary" data-width="50"></div></div>
+    </div>
+  </div>
+</section>
+
+<!-- ============ 9. أفكار إبداعية ============ -->
+<section id="ideas">
+  <div class="section-header">
+    <h1><span class="section-number">9</span> أفكار إبداعية</h1>
+    <p>أفكار مبتكرة لتسريع النمو وتمييز المنتج</p>
+  </div>
+
+  <div class="grid-2 stagger" style="gap:24px">
+    <div class="card idea-card">
+      <span class="idea-num">01</span>
+      <h4>📊 عقاري سكور</h4>
+      <p>نظام تقييم ذكي لأداء المسوقين العقاريين بناءً على سرعة الاستجابة، معدل الإغلاق، ورضا العملاء. يمنح شارات وتصنيفات تحفيزية.</p>
+    </div>
+    <div class="card idea-card">
+      <span class="idea-num">02</span>
+      <h4>📱 الكتالوج الذكي</h4>
+      <p>صفحة كتالوج عقارات لكل عميل بعلامة "Powered by المساعد العقاري" كمحرك نمو عضوي. كل زائر عميل محتمل جديد.</p>
+    </div>
+    <div class="card idea-card">
+      <span class="idea-num">03</span>
+      <h4>📈 تقارير السوق بـ AI</h4>
+      <p>تقارير تحليلية آلية عن حركة السوق العقاري في كل منطقة، تُرسل أسبوعياً للعملاء كقيمة مضافة فريدة.</p>
+    </div>
+    <div class="card idea-card">
+      <span class="idea-num">04</span>
+      <h4>💬 "واتساب أولاً"</h4>
+      <p>شعار تسويقي قوي يعكس فلسفة المنتج. حملة توعوية بأن واتساب هو قناة المبيعات العقارية الأولى في المنطقة.</p>
+    </div>
+    <div class="card idea-card" style="grid-column:1/-1;max-width:600px;margin:0 auto;width:100%">
+      <span class="idea-num">05</span>
+      <h4>🤝 برنامج شركاء - Referral</h4>
+      <p>برنامج إحالة يمنح العملاء الحاليين عمولة أو خصماً عند جلب عملاء جدد. يحول كل عميل إلى مسوّق للمنصة ويسرّع النمو العضوي.</p>
+    </div>
+  </div>
+</section>
+
+<!-- ============ 10. الحكم النهائي ============ -->
+<section id="verdict">
+  <div class="section-header">
+    <h1><span class="section-number">10</span> الحكم النهائي</h1>
+    <p>التقييم النهائي والتوصية الاستراتيجية</p>
+  </div>
+
+  <div class="verdict-box">
+    <h2>🏆 المشروع يستحق الاستثمار الكامل</h2>
+    <p>فرصة حقيقية في سوق ناشئ بحجم كبير مع ميزة تنافسية واضحة</p>
+  </div>
+
+  <div class="grid-2" style="gap:24px">
+    <div class="card" style="padding:28px">
+      <h3 style="font-size:1.1rem;font-weight:700;color:var(--success);margin-bottom:16px">✅ نقاط القوة</h3>
+      <ul class="verdict-list">
+        <li><span class="icon" style="color:var(--success)">✅</span>سوق ضخم ومتنامي مدعوم برؤية 2030</li>
+        <li><span class="icon" style="color:var(--success)">✅</span>واتساب قناة لا منافس لها في السعودية (93% استخدام)</li>
+        <li><span class="icon" style="color:var(--success)">✅</span>نموذج SaaS بهامش ربح 90%+ وقابلية توسع عالية</li>
+        <li><span class="icon" style="color:var(--success)">✅</span>6 وكلاء AI متخصصين يصعب تقليدهم</li>
+        <li><span class="icon" style="color:var(--success)">✅</span>Growth loop عضوي من خلال الكتالوج الذكي</li>
+      </ul>
+    </div>
+    <div class="card" style="padding:28px">
+      <h3 style="font-size:1.1rem;font-weight:700;color:var(--warning);margin-bottom:16px">⚠️ نقاط الانتباه</h3>
+      <ul class="verdict-list">
+        <li><span class="icon" style="color:var(--warning)">⚠️</span>الاعتماد الكبير على WhatsApp API كقناة وحيدة</li>
+        <li><span class="icon" style="color:var(--warning)">⚠️</span>تحدي تبني التقنية من العقاريين التقليديين</li>
+        <li><span class="icon" style="color:var(--warning)">⚠️</span>منافس "تعاريف" يستهدف نفس الشريحة بقوة</li>
+      </ul>
+    </div>
+  </div>
+
+  <div class="card mt-30" style="padding:28px;border-color:rgba(245,158,11,0.3)">
+    <h3 style="font-size:1.1rem;font-weight:700;color:var(--primary);margin-bottom:16px">🎯 التوصية النهائية - 4 خطوات فورية</h3>
+    <div class="grid-2 stagger" style="gap:12px">
+      <div style="background:rgba(245,158,11,0.06);border-radius:var(--radius-sm);padding:16px;display:flex;gap:12px;align-items:start">
+        <span style="background:var(--primary);color:#0a0a1a;width:28px;height:28px;border-radius:8px;display:flex;align-items:center;justify-content:center;font-weight:800;font-size:.8rem;flex-shrink:0">1</span>
+        <div><strong style="color:var(--text-bright);display:block;margin-bottom:2px">إطلاق MVP فوراً</strong><span style="font-size:.85rem;color:var(--text-dim)">ابدأ مع 5 عملاء تجريبيين في الرياض خلال 30 يوماً</span></div>
+      </div>
+      <div style="background:rgba(59,130,246,0.06);border-radius:var(--radius-sm);padding:16px;display:flex;gap:12px;align-items:start">
+        <span style="background:var(--secondary);color:#fff;width:28px;height:28px;border-radius:8px;display:flex;align-items:center;justify-content:center;font-weight:800;font-size:.8rem;flex-shrink:0">2</span>
+        <div><strong style="color:var(--text-bright);display:block;margin-bottom:2px">تأمين شراكة WhatsApp BSP</strong><span style="font-size:.85rem;color:var(--text-dim)">اختيار مزود خدمة معتمد وتفعيل الحساب الرسمي</span></div>
+      </div>
+      <div style="background:rgba(16,185,129,0.06);border-radius:var(--radius-sm);padding:16px;display:flex;gap:12px;align-items:start">
+        <span style="background:var(--success);color:#fff;width:28px;height:28px;border-radius:8px;display:flex;align-items:center;justify-content:center;font-weight:800;font-size:.8rem;flex-shrink:0">3</span>
+        <div><strong style="color:var(--text-bright);display:block;margin-bottom:2px">بناء Content Marketing</strong><span style="font-size:.85rem;color:var(--text-dim)">إنشاء محتوى تعليمي عقاري على تويتر ولينكدإن</span></div>
+      </div>
+      <div style="background:rgba(168,85,247,0.06);border-radius:var(--radius-sm);padding:16px;display:flex;gap:12px;align-items:start">
+        <span style="background:#a855f7;color:#fff;width:28px;height:28px;border-radius:8px;display:flex;align-items:center;justify-content:center;font-weight:800;font-size:.8rem;flex-shrink:0">4</span>
+        <div><strong style="color:var(--text-bright);display:block;margin-bottom:2px">قياس Product-Market Fit</strong><span style="font-size:.85rem;color:var(--text-dim)">جمع ملاحظات العملاء وتحسين المنتج بسرعة عالية</span></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="text-center mt-40" style="padding:40px 0">
+    <p style="color:var(--text-dim);font-size:.85rem">تم إعداد هذا التقرير لأغراض التحليل الريادي - المساعد العقاري الذكي &copy; 2025</p>
+  </div>
+</section>
+
+</main>
+
+<script>
+// Intersection Observer for fade-in
+const observer = new IntersectionObserver((entries) => {
+  entries.forEach(e => {
+    if (e.isIntersecting) {
+      e.target.classList.add('visible');
+    }
+  });
+}, { threshold: 0.1 });
+
+document.querySelectorAll('section, .stagger, .timeline-item').forEach(el => observer.observe(el));
+
+// Active nav tracking
+const sections = document.querySelectorAll('section');
+const navItems = document.querySelectorAll('.nav-item');
+const mobileItems = document.querySelectorAll('.mobile-nav a');
+
+const navObserver = new IntersectionObserver((entries) => {
+  entries.forEach(e => {
+    if (e.isIntersecting) {
+      const id = e.target.id;
+      navItems.forEach(n => n.classList.toggle('active', n.dataset.section === id));
+      mobileItems.forEach(n => n.classList.toggle('active', n.dataset.section === id));
+    }
+  });
+}, { threshold: 0.3 });
+
+sections.forEach(s => navObserver.observe(s));
+
+// Animated counters
+function animateCounter(el, target) {
+  let current = 0;
+  const step = target / 60;
+  const timer = setInterval(() => {
+    current += step;
+    if (current >= target) {
+      el.textContent = target.toLocaleString();
+      clearInterval(timer);
+    } else {
+      el.textContent = Math.floor(current).toLocaleString();
+    }
+  }, 16);
+}
+
+const counterObserver = new IntersectionObserver((entries) => {
+  entries.forEach(e => {
+    if (e.isIntersecting && !e.target.dataset.animated) {
+      e.target.dataset.animated = '1';
+      const target = parseInt(e.target.dataset.count);
+      if (!isNaN(target)) animateCounter(e.target, target);
+    }
+  });
+}, { threshold: 0.5 });
+
+document.querySelectorAll('[data-count]').forEach(el => counterObserver.observe(el));
+
+// Progress ring animation
+const ringObserver = new IntersectionObserver((entries) => {
+  entries.forEach(e => {
+    if (e.isIntersecting && !e.target.dataset.animated) {
+      e.target.dataset.animated = '1';
+      const ring = document.getElementById('scoreRing');
+      const circumference = 2 * Math.PI * 80;
+      const offset = circumference - (8.5 / 10) * circumference;
+      ring.style.strokeDashoffset = offset;
+      // Animate score number
+      const scoreEl = document.getElementById('scoreNum');
+      let c = 0;
+      const t = setInterval(() => {
+        c += 0.15;
+        if (c >= 8.5) { scoreEl.textContent = '8.5'; clearInterval(t); }
+        else scoreEl.textContent = c.toFixed(1);
+      }, 16);
+    }
+  });
+}, { threshold: 0.5 });
+
+const ringWrap = document.querySelector('.progress-ring-wrap');
+if (ringWrap) ringObserver.observe(ringWrap);
+
+// Progress bars
+const barObserver = new IntersectionObserver((entries) => {
+  entries.forEach(e => {
+    if (e.isIntersecting && !e.target.dataset.animated) {
+      e.target.dataset.animated = '1';
+      const w = e.target.dataset.width;
+      if (w) e.target.style.width = w + '%';
+    }
+  });
+}, { threshold: 0.5 });
+
+document.querySelectorAll('.fill[data-width]').forEach(el => barObserver.observe(el));
+</script>
+</body>
+</html>
